@@ -110,7 +110,11 @@ let speaking = []
  */
 function speak(parts) {
   if (!("speechSynthesis" in window)) return Promise.resolve()
-  speechSynthesis.cancel()
+  // Safari can drop words spoken straight after a cancel, so only cancel
+  // when something is actually being said.
+  if (speechSynthesis.speaking || speechSynthesis.pending) {
+    speechSynthesis.cancel()
+  }
   if (!voice) pickVoice()
   return new Promise((resolve) => {
     const fallback = setTimeout(finish, 1500 + parts.length * 1200)
