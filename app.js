@@ -1,7 +1,7 @@
 /**
  * ABC Flash Cards: a card for each letter, and a game to find a letter by its
  * name or its sound. Every sound starts from a tap, because iOS only lets a
- * page speak after the person has touched it.
+ * page play sound after the person has touched it.
  *
  * @module app
  */
@@ -71,97 +71,73 @@ function byId(id) {
   return el
 }
 
-/* ---------- Speech ---------- */
+/* ---------- Sound ---------- */
 
-/** @type {SpeechSynthesisVoice | undefined} */
-let voice
+/**
+ * Every word the app says is a recorded clip in audio/, so each device says
+ * the letters the same way and nothing depends on a built-in speech voice.
+ * One player is reused for all of them: iOS lets a player make sound once a
+ * tap has started it, and the start button's tap is that first one.
+ */
+const player = new Audio()
+player.preload = "auto"
 
-/** Pick a clear English voice, preferring the iPad's default US voice. */
-function pickVoice() {
-  if (!("speechSynthesis" in window)) return
-  const voices = speechSynthesis.getVoices()
-  const english = voices.filter((v) =>
-    v.lang.replace("_", "-").startsWith("en"),
-  )
-  voice =
-    english.find((v) => v.name === "Samantha") ??
-    english.find(
-      (v) => v.lang.replace("_", "-") === "en-US" && v.localService,
-    ) ??
-    english.find((v) => v.lang.replace("_", "-") === "en-US") ??
-    english[0]
+/** Ends the clip playing now, if any, so a new one can start. */
+let stopClip = () => {}
+
+/** Counts calls to say(), so an older sequence knows it was replaced. */
+let sayCount = 0
+
+/**
+ * Play clips one after another, stopping anything already playing. Resolves
+ * when the last one ends, or when something else starts playing.
+ *
+ * @param {string[]} clips Clip names: files in audio/, without ".mp3".
+ * @returns {Promise<void>} Settles when playing is done.
+ */
+async function say(clips) {
+  const turn = ++sayCount
+  stopClip()
+  for (const [i, name] of clips.entries()) {
+    if (i > 0) await new Promise((resolve) => setTimeout(resolve, 150))
+    if (turn !== sayCount) return
+    await playClip(name)
+  }
 }
 
 /**
- * Utterances being spoken. Safari can drop an utterance that nothing refers
- * to before it ends, and then its end event never comes.
+ * Play one clip. Resolves when it ends, fails, or is stopped. Some browsers
+ * never report the end, so it also resolves after a generous wait.
  *
- * @type {SpeechSynthesisUtterance[]}
+ * @param {string} name The clip's name.
+ * @returns {Promise<void>} Settles when the clip is done.
  */
-let speaking = []
-
-/**
- * Set once the chosen voice has failed: from then on the browser picks the
- * voice. Some systems list voices that can't actually speak.
- */
-let useDefaultVoice = false
-
-/**
- * Say some words, one after another, stopping anything already being said.
- * Resolves when the last one finishes. Some browsers never report the end,
- * so it also resolves after a generous wait.
- *
- * @param {string[]} parts The words to say, each with a short pause after.
- * @returns {Promise<void>} Settles when speaking is done.
- */
-function speak(parts) {
-  if (!("speechSynthesis" in window)) {
-    showSoundProblem("no speech support")
-    return Promise.resolve()
-  }
-  // Safari can drop words spoken straight after a cancel, so only cancel
-  // when something is actually being said.
-  if (speechSynthesis.speaking || speechSynthesis.pending) {
-    speechSynthesis.cancel()
-  }
-  if (!voice) pickVoice()
-  const chosen = useDefaultVoice ? undefined : voice
+function playClip(name) {
   return new Promise((resolve) => {
-    const fallback = setTimeout(finish, 1500 + parts.length * 1200)
+    const fallback = setTimeout(finish, 5000)
     /** Settle once, whichever comes first. */
     function finish() {
       clearTimeout(fallback)
+      player.onended = null
+      player.onerror = null
+      stopClip = () => {}
       resolve()
     }
-    let failed = false
-    speaking = parts.map((text, i) => {
-      const utterance = new SpeechSynthesisUtterance(text)
-      if (chosen) utterance.voice = chosen
-      utterance.lang = chosen?.lang ?? "en-US"
-      utterance.rate = 0.8
-      utterance.pitch = 1.1
-      utterance.onerror = (event) => {
-        // Stopping speech on purpose reports an error too; that's fine.
-        if (event.error === "interrupted" || event.error === "canceled") {
-          finish()
-          return
-        }
-        if (failed) return
-        failed = true
-        // The chosen voice may be the problem: try again with the default.
-        if (chosen && event.error !== "not-allowed") {
-          useDefaultVoice = true
-          clearTimeout(fallback)
-          speak(parts).then(resolve)
-          return
-        }
-        showSoundProblem(event.error)
-        finish()
-      }
-      if (i === parts.length - 1) utterance.onend = finish
-      return utterance
+    stopClip = () => {
+      player.pause()
+      finish()
+    }
+    player.onended = finish
+    player.onerror = () => {
+      showSoundProblem("a sound didn't load")
+      finish()
+    }
+    player.src = `audio/${name}.mp3`
+    player.play().catch((error) => {
+      // A newer clip replacing this one also rejects play(); that's fine.
+      if (error.name === "NotAllowedError") showSoundProblem("not-allowed")
+      if (error.name !== "AbortError") finish()
     })
-    for (const utterance of speaking) speechSynthesis.speak(utterance)
   })
 }
 
@@ -175,19 +151,31 @@ function showSoundProblem(reason) {
   if (reason === "not-allowed") {
     notice.textContent = `Sound is blocked on this page (${reason}).`
   } else {
-    notice.textContent = `Sound isn't working in this browser (${reason}). Check the volume, or try another browser.`
+    notice.textContent = `Sound isn't working (${reason}). Check the volume, or reload the page.`
   }
   notice.hidden = false
 }
 
 /**
- * The words that teach a letter's sound: the sound twice, then the word.
+ * The name of a letter's clip.
+ *
+ * @param {Letter} item The letter.
+ * @param {"name" | "sound" | "word"} kind Which clip: the letter's name, its
+ *   sound, or its picture word.
+ * @returns {string} The clip's name.
+ */
+function clip(item, kind) {
+  return `${item.letter.toLowerCase()}-${kind}`
+}
+
+/**
+ * The clips that teach a letter's sound: the sound twice, then the word.
  *
  * @param {Letter} item The letter.
  * @returns {string[]} What to say.
  */
 function soundParts(item) {
-  return [item.sound, item.sound, item.word]
+  return [clip(item, "sound"), clip(item, "sound"), clip(item, "word")]
 }
 
 /* ---------- Shared display ---------- */
@@ -294,12 +282,12 @@ function goTo(index) {
 
 cardLetter.addEventListener("click", () => {
   pulse(cardLetter, "bounce")
-  speak([LETTERS[state.index].name])
+  say([clip(LETTERS[state.index], "name")])
 })
 
 cardPicture.addEventListener("click", () => {
   pulse(cardEmoji, "bounce")
-  speak(soundParts(LETTERS[state.index]))
+  say(soundParts(LETTERS[state.index]))
 })
 
 for (const button of document.querySelectorAll("[data-step]")) {
@@ -314,7 +302,7 @@ LETTERS.forEach((item, index) => {
   button.setAttribute("aria-label", item.letter)
   button.addEventListener("click", () => {
     goTo(index)
-    speak([item.name])
+    say([clip(item, "name")])
   })
   strip.append(button)
 })
@@ -448,8 +436,9 @@ function renderRound() {
 function askQuestion() {
   if (!round) return
   pulse(findPrompt, "bounce")
-  if (round.ask === "name") speak(["Find", round.target.name])
-  else speak(["Which letter says", round.target.sound, round.target.sound])
+  const target = round.target
+  if (round.ask === "name") say(["find", clip(target, "name")])
+  else say(["which-says", clip(target, "sound"), clip(target, "sound")])
 }
 
 /**
@@ -464,7 +453,7 @@ async function choose(button, item) {
   if (item !== target) {
     button.disabled = true
     pulse(button, "wrong")
-    await speak([`That's ${item.name}.`, "Try again!"])
+    await say(["thats", clip(item, "name"), "try-again"])
     return
   }
 
@@ -475,9 +464,10 @@ async function choose(button, item) {
   stars += 1
   renderStars()
   const done = stars >= STARS_PER_ROUND
-  await speak([
-    done ? "You did it! Ten stars!" : "Yes!",
-    `${target.name} says`,
+  await say([
+    done ? "you-did-it" : "yes",
+    clip(target, "name"),
+    "says",
     ...soundParts(target),
   ])
   if (done) stars = 0
@@ -527,7 +517,7 @@ for (const button of document.querySelectorAll("[data-mode]")) {
     const mode = button.dataset.mode
     if (mode !== "cards" && mode !== "find") return
     if (mode === state.mode) return
-    window.speechSynthesis?.cancel()
+    say([])
     state.mode = mode
     save()
     render()
@@ -565,11 +555,6 @@ document.addEventListener("keydown", (event) => {
 
 /* ---------- Start ---------- */
 
-if ("speechSynthesis" in window) {
-  pickVoice()
-  speechSynthesis.addEventListener("voiceschanged", pickVoice)
-}
-
 render()
 
 // Browsers stay silent until the page is tapped, so the app opens on a big
@@ -585,9 +570,9 @@ byId("start-button").addEventListener("click", () => {
     renderStars()
     round = makeRound("name")
     renderRound()
-    speak(["Let's play!", "Find", round.target.name])
+    say(["lets-play", "find", clip(round.target, "name")])
   } else {
-    speak(["Let's play!"])
+    say(["lets-play"])
   }
 })
 

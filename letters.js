@@ -1,9 +1,10 @@
 /**
  * The alphabet: each letter with a picture word that starts with it. Most
  * words also start with the letter's usual sound; xylophone is the exception
- * (its x says "z"), so X teaches its "ks" sound on its own. `name` and
- * `sound` are spellings the speech voice reads as the letter's name and its
- * sound; tune them here if a voice says one wrong.
+ * (its x says "z"), so X teaches its "ks" sound on its own.
+ *
+ * What the app says for each letter is in audio/: `<letter>-name.mp3`,
+ * `<letter>-sound.mp3` and `<letter>-word.mp3`.
  *
  * @module letters
  */
@@ -11,8 +12,8 @@
 /**
  * @typedef {object} Letter
  * @property {string} letter The uppercase letter.
- * @property {string} name A spelling the voice reads as the letter's name.
- * @property {string} sound A spelling the speech voice reads as the sound.
+ * @property {string} sound The letter's sound, in phonetic spelling. Letters
+ *   with the same sound (C and K) are never both choices in one question.
  * @property {string} word A word that shows the sound.
  * @property {string} picture An emoji of the word, or the path of an image
  *   when there is no emoji for it.
@@ -20,42 +21,35 @@
 
 /** @type {Letter[]} */
 export const LETTERS = [
-  { letter: "A", name: "ay", sound: "aah", word: "apple", picture: "🍎" },
-  { letter: "B", name: "bee", sound: "buh", word: "ball", picture: "⚽" },
-  { letter: "C", name: "see", sound: "kuh", word: "cat", picture: "🐱" },
-  { letter: "D", name: "dee", sound: "duh", word: "dog", picture: "🐶" },
-  { letter: "E", name: "ee", sound: "eh", word: "egg", picture: "🥚" },
-  { letter: "F", name: "eff", sound: "fuh", word: "fish", picture: "🐟" },
-  { letter: "G", name: "jee", sound: "guh", word: "goat", picture: "🐐" },
-  { letter: "H", name: "aitch", sound: "huh", word: "hat", picture: "🎩" },
-  { letter: "I", name: "eye", sound: "ih", word: "insect", picture: "🐞" },
-  { letter: "J", name: "jay", sound: "juh", word: "jellyfish", picture: "🪼" },
-  { letter: "K", name: "kay", sound: "kuh", word: "kite", picture: "🪁" },
-  { letter: "L", name: "el", sound: "luh", word: "lion", picture: "🦁" },
-  { letter: "M", name: "em", sound: "mmm", word: "moon", picture: "🌙" },
-  { letter: "N", name: "en", sound: "nnn", word: "nest", picture: "🪺" },
-  { letter: "O", name: "oh", sound: "ah", word: "octopus", picture: "🐙" },
-  { letter: "P", name: "pee", sound: "puh", word: "pig", picture: "🐷" },
-  { letter: "Q", name: "cue", sound: "kwuh", word: "queen", picture: "👑" },
-  { letter: "R", name: "ar", sound: "ruh", word: "rabbit", picture: "🐰" },
-  { letter: "S", name: "ess", sound: "sss", word: "sun", picture: "☀️" },
-  { letter: "T", name: "tee", sound: "tuh", word: "turtle", picture: "🐢" },
-  { letter: "U", name: "you", sound: "uh", word: "umbrella", picture: "☂️" },
-  { letter: "V", name: "vee", sound: "vuh", word: "volcano", picture: "🌋" },
-  {
-    letter: "W",
-    name: "double you",
-    sound: "wuh",
-    word: "watermelon",
-    picture: "🍉",
-  },
+  { letter: "A", sound: "æ", word: "apple", picture: "🍎" },
+  { letter: "B", sound: "b", word: "ball", picture: "⚽" },
+  { letter: "C", sound: "k", word: "cat", picture: "🐱" },
+  { letter: "D", sound: "d", word: "dog", picture: "🐶" },
+  { letter: "E", sound: "ɛ", word: "egg", picture: "🥚" },
+  { letter: "F", sound: "f", word: "fish", picture: "🐟" },
+  { letter: "G", sound: "ɡ", word: "goat", picture: "🐐" },
+  { letter: "H", sound: "h", word: "hat", picture: "🎩" },
+  { letter: "I", sound: "ɪ", word: "insect", picture: "🐞" },
+  { letter: "J", sound: "dʒ", word: "jellyfish", picture: "🪼" },
+  { letter: "K", sound: "k", word: "kite", picture: "🪁" },
+  { letter: "L", sound: "l", word: "lion", picture: "🦁" },
+  { letter: "M", sound: "m", word: "moon", picture: "🌙" },
+  { letter: "N", sound: "n", word: "nest", picture: "🪺" },
+  { letter: "O", sound: "ɔ", word: "octopus", picture: "🐙" },
+  { letter: "P", sound: "p", word: "pig", picture: "🐷" },
+  { letter: "Q", sound: "kw", word: "queen", picture: "👑" },
+  { letter: "R", sound: "ɹ", word: "rabbit", picture: "🐰" },
+  { letter: "S", sound: "s", word: "sun", picture: "☀️" },
+  { letter: "T", sound: "t", word: "turtle", picture: "🐢" },
+  { letter: "U", sound: "ʌ", word: "umbrella", picture: "☂️" },
+  { letter: "V", sound: "v", word: "volcano", picture: "🌋" },
+  { letter: "W", sound: "w", word: "watermelon", picture: "🍉" },
   {
     letter: "X",
-    name: "ex",
     sound: "ks",
     word: "xylophone",
     picture: "icons/xylophone.svg",
   },
-  { letter: "Y", name: "why", sound: "yuh", word: "yo-yo", picture: "🪀" },
-  { letter: "Z", name: "zee", sound: "zzz", word: "zebra", picture: "🦓" },
+  { letter: "Y", sound: "j", word: "yo-yo", picture: "🪀" },
+  { letter: "Z", sound: "z", word: "zebra", picture: "🦓" },
 ]
