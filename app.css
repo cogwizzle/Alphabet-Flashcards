@@ -1,0 +1,373 @@
+/*
+ * ABC Flash Cards. Modern Styles does the base look; this file adds the big,
+ * touch-first pieces on top. It is unlayered, so it wins over the library's
+ * layers without needing heavier selectors.
+ */
+
+/*
+ * Andika: a typeface made for children learning to read, with the "a" and
+ * "g" they learn to write (single-story), instead of the printed forms.
+ */
+@font-face {
+  font-family: Andika;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fonts/andika-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: Andika;
+  font-weight: 700;
+  font-display: swap;
+  src: url("fonts/andika-latin-700-normal.woff2") format("woff2");
+}
+
+:root {
+  --ms-hue: 260;
+  --letter-font: Andika, var(--ms-font-sans);
+  --tile-radius: 1.5rem;
+
+  /* No double-tap zoom, text selection or long-press menus while playing. */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+  overscroll-behavior: none;
+}
+
+body {
+  background: var(--ms-color-bg);
+  transition: background-color 300ms var(--ms-ease);
+}
+
+.app {
+  min-block-size: 100dvh;
+  padding-block: max(var(--ms-space-s), env(safe-area-inset-top))
+    max(var(--ms-space-s), env(safe-area-inset-bottom));
+  padding-inline: max(var(--ms-space-s), env(safe-area-inset-left))
+    max(var(--ms-space-s), env(safe-area-inset-right));
+}
+
+main {
+  flex: 1;
+  display: grid;
+  min-block-size: 0;
+}
+
+/* ---------- Toggles ---------- */
+
+.segmented {
+  display: inline-flex;
+  padding: 0.25rem;
+  border-radius: 999px;
+  background: var(--ms-color-surface);
+  border: 1px solid var(--ms-color-border);
+}
+
+.segmented button {
+  min-block-size: 3rem;
+  min-inline-size: 4.5rem;
+  padding-inline: var(--ms-space-s);
+  border: 0;
+  border-radius: 999px;
+  font-size: var(--ms-step-1);
+  color: var(--ms-color-text);
+  background: transparent;
+}
+
+@media (width < 30rem) {
+  .segmented button {
+    min-inline-size: 3.5rem;
+    padding-inline: var(--ms-space-2xs);
+    font-size: var(--ms-step-0);
+  }
+}
+
+.segmented [data-case] {
+  font-family: var(--letter-font);
+  font-weight: 700;
+}
+
+.segmented button[aria-pressed="true"] {
+  background: var(--ms-color-primary);
+  color: var(--ms-color-on-primary);
+}
+
+/* ---------- Cards ---------- */
+
+.cards {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--ms-space-xs);
+  min-block-size: 0;
+}
+
+.card {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  place-items: center;
+  block-size: 100%;
+  min-block-size: 0;
+  min-inline-size: 0;
+  padding: var(--ms-space-s);
+  border-radius: calc(var(--tile-radius) * 1.5);
+  background: var(--ms-color-surface);
+  border: 4px solid
+    color-mix(in oklch, var(--ms-color-primary) 35%, transparent);
+  box-shadow: 0 0.75rem 2rem
+    color-mix(in oklch, var(--ms-color-primary) 18%, transparent);
+  touch-action: pan-y;
+}
+
+.card button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  inline-size: 100%;
+}
+
+.card button:hover {
+  background: transparent;
+}
+
+.card .glyph {
+  block-size: 100%;
+  font-family: var(--letter-font);
+  font-weight: 700;
+  font-size: min(42vh, 55vw);
+  line-height: 1;
+  color: var(--ms-color-primary);
+}
+
+.card .picture {
+  flex-direction: column;
+  gap: 0;
+  padding-block: var(--ms-space-2xs);
+}
+
+.emoji {
+  font-size: min(13vh, 20vw);
+  line-height: 1.1;
+}
+
+.word {
+  font-family: var(--letter-font);
+  font-size: min(7vh, 9vw);
+  font-weight: 400;
+  color: var(--ms-color-text);
+}
+
+.word b {
+  color: var(--ms-color-primary);
+  font-weight: 700;
+}
+
+.nav {
+  inline-size: clamp(3.5rem, 9vw, 6rem);
+  block-size: clamp(3.5rem, 9vw, 6rem);
+  padding: 0;
+  border-radius: 50%;
+  font-size: clamp(2.5rem, 7vw, 4.5rem);
+  line-height: 1;
+  padding-block-end: 0.15em;
+}
+
+/* Narrow portrait screens: arrows go under the card to give it the width. */
+@media (aspect-ratio < 3 / 4) and (width < 40rem) {
+  .cards {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .card {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .prev {
+    grid-row: 2;
+    justify-self: start;
+  }
+
+  .next {
+    grid-row: 2;
+    justify-self: end;
+  }
+}
+
+/* The strip of every letter, to jump straight to one. */
+.strip {
+  display: flex;
+  gap: var(--ms-space-3xs);
+  overflow-x: auto;
+  padding-block: 0.25rem;
+  scrollbar-width: none;
+}
+
+.strip button {
+  flex: 1 0 2.75rem;
+  min-inline-size: 2.75rem;
+  min-block-size: 2.75rem;
+  padding: 0;
+  border-width: 1px;
+  border-color: var(--ms-color-border-strong);
+  color: var(--ms-color-text);
+  font-family: var(--letter-font);
+  font-size: var(--ms-step-1);
+}
+
+.strip button[aria-current="true"] {
+  background: var(--ms-color-primary);
+  border-color: var(--ms-color-primary);
+  color: var(--ms-color-on-primary);
+}
+
+/* ---------- Find it ---------- */
+
+.find {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: var(--ms-space-s);
+  min-block-size: 0;
+}
+
+.prompt {
+  justify-self: center;
+  min-block-size: 4rem;
+  padding-inline: var(--ms-space-m);
+  border-radius: 999px;
+  font-size: var(--ms-step-2);
+}
+
+.prompt [aria-hidden] {
+  font-size: 1.4em;
+}
+
+.choices {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--ms-space-s);
+  min-block-size: 0;
+}
+
+@media (aspect-ratio > 4 / 3) {
+  .choices {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.choice {
+  block-size: 100%;
+  min-block-size: 6rem;
+  border-radius: var(--tile-radius);
+  border-width: 4px;
+  background: var(--ms-color-surface);
+  color: var(--ms-color-primary);
+  font-family: var(--letter-font);
+  font-weight: 700;
+  font-size: min(22vh, 24vw);
+  line-height: 1;
+}
+
+@media (aspect-ratio > 4 / 3) {
+  .choice {
+    font-size: min(30vh, 14vw);
+  }
+}
+
+.choice.right {
+  background: oklch(72% 0.17 150deg);
+  border-color: oklch(55% 0.17 150deg);
+  color: oklch(20% 0.05 150deg);
+  opacity: 1;
+  animation: bounce 500ms var(--ms-ease);
+}
+
+.choice:disabled:not(.right) {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.stars {
+  min-block-size: 2.5rem;
+  margin: 0;
+  text-align: center;
+  font-size: var(--ms-step-3);
+  line-height: 1;
+}
+
+/* Shown only when the browser can't speak. */
+.sound-problem {
+  margin: 0;
+  padding: var(--ms-space-2xs) var(--ms-space-s);
+  border-radius: var(--ms-radius);
+  background: var(--ms-color-mark);
+  color: var(--ms-color-text);
+  text-align: center;
+}
+
+/* ---------- Motion ---------- */
+
+.bounce {
+  animation: bounce 450ms var(--ms-ease);
+}
+
+.wrong {
+  animation: shake 400ms var(--ms-ease);
+}
+
+.in-next {
+  animation: in-next 250ms var(--ms-ease);
+}
+
+.in-prev {
+  animation: in-prev 250ms var(--ms-ease);
+}
+
+@keyframes bounce {
+  40% {
+    transform: scale(1.12);
+  }
+
+  70% {
+    transform: scale(0.96);
+  }
+}
+
+@keyframes shake {
+  20%,
+  60% {
+    transform: translateX(-0.6rem);
+  }
+
+  40%,
+  80% {
+    transform: translateX(0.6rem);
+  }
+}
+
+@keyframes in-next {
+  from {
+    opacity: 0;
+    transform: translateX(2rem);
+  }
+}
+
+@keyframes in-prev {
+  from {
+    opacity: 0;
+    transform: translateX(-2rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bounce,
+  .wrong,
+  .in-next,
+  .in-prev,
+  .choice.right {
+    animation: none;
+  }
+}
