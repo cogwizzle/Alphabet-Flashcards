@@ -298,6 +298,16 @@ main {
   line-height: 1;
 }
 
+/* Shown only when the browser can't speak. */
+.sound-problem {
+  margin: 0;
+  padding: var(--ms-space-2xs) var(--ms-space-s);
+  border-radius: var(--ms-radius);
+  background: var(--ms-color-mark);
+  color: var(--ms-color-text);
+  text-align: center;
+}
+
 /* ---------- Motion ---------- */
 
 .bounce {

@@ -109,7 +109,10 @@ let speaking = []
  * @returns {Promise<void>} Settles when speaking is done.
  */
 function speak(parts) {
-  if (!("speechSynthesis" in window)) return Promise.resolve()
+  if (!("speechSynthesis" in window)) {
+    showSoundProblem("no speech support")
+    return Promise.resolve()
+  }
   // Safari can drop words spoken straight after a cancel, so only cancel
   // when something is actually being said.
   if (speechSynthesis.speaking || speechSynthesis.pending) {
@@ -129,14 +132,29 @@ function speak(parts) {
       utterance.lang = voice?.lang ?? "en-US"
       utterance.rate = 0.8
       utterance.pitch = 1.1
-      if (i === parts.length - 1) {
-        utterance.onend = finish
-        utterance.onerror = finish
+      utterance.onerror = (event) => {
+        // Stopping speech on purpose reports an error too; that's fine.
+        if (event.error !== "interrupted" && event.error !== "canceled") {
+          showSoundProblem(event.error)
+        }
+        finish()
       }
+      if (i === parts.length - 1) utterance.onend = finish
       return utterance
     })
     for (const utterance of speaking) speechSynthesis.speak(utterance)
   })
+}
+
+/**
+ * Say on screen that sound isn't working, so a silent tap isn't a mystery.
+ *
+ * @param {string} reason What the browser said went wrong.
+ */
+function showSoundProblem(reason) {
+  const notice = byId("sound-problem")
+  notice.textContent = `Sound isn't working in this browser (${reason}). Check the volume, or try another browser.`
+  notice.hidden = false
 }
 
 /**
