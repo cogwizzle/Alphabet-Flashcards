@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>ABC Flash Cards</title>
+    <meta
+      name="description"
+      content="Alphabet flash cards for little learners: letters, their sounds, and a find-the-letter game."
+    />
+    <meta name="theme-color" content="#4b4fd1" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="ABC Cards" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <link rel="stylesheet" href="vendor/modern-styles.min.css" />
+    <link rel="stylesheet" href="app.css" />
+    <script type="module" src="app.js"></script>
+  </head>
+  <body>
+    <ms-stack space="s" class="app">
+      <header>
+        <ms-cluster justify="space-between" space="xs">
+          <div role="group" aria-label="Game" class="segmented">
+            <button type="button" data-mode="cards" aria-pressed="true">
+              <span aria-hidden="true">🃏</span> Cards
+            </button>
+            <button type="button" data-mode="find" aria-pressed="false">
+              <span aria-hidden="true">🔎</span> Find it
+            </button>
+          </div>
+          <div role="group" aria-label="Letter case" class="segmented">
+            <button
+              type="button"
+              data-case="upper"
+              aria-pressed="true"
+              aria-label="Big letters"
+            >
+              ABC
+            </button>
+            <button
+              type="button"
+              data-case="lower"
+              aria-pressed="false"
+              aria-label="Small letters"
+            >
+              abc
+            </button>
+          </div>
+        </ms-cluster>
+      </header>
+
+      <main>
+        <section id="cards" class="cards" aria-label="Flash cards">
+          <button
+            type="button"
+            class="nav prev"
+            data-step="-1"
+            aria-label="Previous letter"
+          >
+            ‹
+          </button>
+          <div class="card" id="card">
+            <button
+              type="button"
+              class="glyph"
+              id="card-letter"
+              aria-label="Say the letter"
+            ></button>
+            <button
+              type="button"
+              class="picture"
+              id="card-picture"
+              aria-label="Say the sound"
+            >
+              <span class="emoji" id="card-emoji" aria-hidden="true"></span>
+              <span class="word" id="card-word"></span>
+            </button>
+          </div>
+          <button
+            type="button"
+            class="nav next"
+            data-step="1"
+            aria-label="Next letter"
+          >
+            ›
+          </button>
+        </section>
+
+        <section id="find" class="find" aria-label="Find the letter" hidden>
+          <button type="button" class="prompt" id="find-prompt">
+            <span aria-hidden="true">🔊</span>
+            <span id="find-prompt-text"></span>
+          </button>
+          <div class="choices" id="find-choices"></div>
+          <p class="stars" id="find-stars" aria-live="polite"></p>
+        </section>
+      </main>
+
+      <footer>
+        <nav aria-label="All letters" class="strip" id="strip"></nav>
+      </footer>
+    </ms-stack>
+    <noscript>This app needs JavaScript to show the cards.</noscript>
+  </body>
+</html>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#4b4fd1"/>
+  <rect x="142" y="102" width="260" height="330" rx="36" fill="#f6c945" transform="rotate(8 272 267)"/>
+  <rect x="110" y="90" width="272" height="332" rx="36" fill="#ffffff" transform="rotate(-6 246 256)"/>
+  <text x="246" y="330" text-anchor="middle" transform="rotate(-6 246 256)" font-family="Andika, system-ui, sans-serif" font-weight="700" font-size="200" fill="#4b4fd1">Aa</text>
+</svg>
