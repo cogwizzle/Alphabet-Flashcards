@@ -101,6 +101,12 @@ function pickVoice() {
 let speaking = []
 
 /**
+ * Set once the chosen voice has failed: from then on the browser picks the
+ * voice. Some systems list voices that can't actually speak.
+ */
+let useDefaultVoice = false
+
+/**
  * Say some words, one after another, stopping anything already being said.
  * Resolves when the last one finishes. Some browsers never report the end,
  * so it also resolves after a generous wait.
@@ -119,6 +125,7 @@ function speak(parts) {
     speechSynthesis.cancel()
   }
   if (!voice) pickVoice()
+  const chosen = useDefaultVoice ? undefined : voice
   return new Promise((resolve) => {
     const fallback = setTimeout(finish, 1500 + parts.length * 1200)
     /** Settle once, whichever comes first. */
@@ -126,17 +133,29 @@ function speak(parts) {
       clearTimeout(fallback)
       resolve()
     }
+    let failed = false
     speaking = parts.map((text, i) => {
       const utterance = new SpeechSynthesisUtterance(text)
-      if (voice) utterance.voice = voice
-      utterance.lang = voice?.lang ?? "en-US"
+      if (chosen) utterance.voice = chosen
+      utterance.lang = chosen?.lang ?? "en-US"
       utterance.rate = 0.8
       utterance.pitch = 1.1
       utterance.onerror = (event) => {
         // Stopping speech on purpose reports an error too; that's fine.
-        if (event.error !== "interrupted" && event.error !== "canceled") {
-          showSoundProblem(event.error)
+        if (event.error === "interrupted" || event.error === "canceled") {
+          finish()
+          return
         }
+        if (failed) return
+        failed = true
+        // The chosen voice may be the problem: try again with the default.
+        if (chosen && event.error !== "not-allowed") {
+          useDefaultVoice = true
+          clearTimeout(fallback)
+          speak(parts).then(resolve)
+          return
+        }
+        showSoundProblem(event.error)
         finish()
       }
       if (i === parts.length - 1) utterance.onend = finish
@@ -153,7 +172,11 @@ function speak(parts) {
  */
 function showSoundProblem(reason) {
   const notice = byId("sound-problem")
-  notice.textContent = `Sound isn't working in this browser (${reason}). Check the volume, or try another browser.`
+  if (reason === "not-allowed") {
+    notice.textContent = `Sound is blocked on this page (${reason}).`
+  } else {
+    notice.textContent = `Sound isn't working in this browser (${reason}). Check the volume, or try another browser.`
+  }
   notice.hidden = false
 }
 

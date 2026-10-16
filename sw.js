@@ -6,7 +6,7 @@
  * @module sw
  */
 
-const VERSION = "v3"
+const VERSION = "v4"
 const CACHE = `abc-flashcards-${VERSION}`
 const FILES = [
   "./",
