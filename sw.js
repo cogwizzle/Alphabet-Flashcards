@@ -6,7 +6,7 @@
  * @module sw
  */
 
-const VERSION = "v4"
+const VERSION = "v5"
 const CACHE = `abc-flashcards-${VERSION}`
 const FILES = [
   "./",
@@ -14,6 +14,9 @@ const FILES = [
   "app.css",
   "app.js",
   "letters.js",
+  "recorder.js",
+  "recordings.js",
+  "sound.js",
   "manifest.webmanifest",
   "vendor/modern-styles.min.css",
   "fonts/andika-latin-400-normal.woff2",

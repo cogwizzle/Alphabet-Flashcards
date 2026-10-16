@@ -5,8 +5,9 @@ Flash card game for kids to help learn letters and sounds. It is a Progressive W
 - **Cards**: one big card per letter. Tap the letter to hear its name; tap the picture to hear its sound and a word that starts with it. Swipe or use the arrows to change letters, or tap a letter in the strip at the bottom to jump to it.
 - **Find it**: the app says a letter's name or its sound, and she taps the matching letter out of four. Each right answer earns a star; ten stars is a win.
 - **ABC / abc**: switches every letter between uppercase and lowercase.
+- **🎙️ Record your voice**: a grown-up records each letter's name and sound. The app plays those recordings instead of the speech voice, which can't say some sounds on their own (it spells out "ih" or "kwuh"). Recordings are kept on that device only.
 
-The look comes from [Modern Styles](https://github.com/cogwizzle/Modern-Styles), and letters use [Andika](https://software.sil.org/andika/), a typeface made for early readers. Sounds use the device's built-in speech voice, so there are no audio files.
+The look comes from [Modern Styles](https://github.com/cogwizzle/Modern-Styles), and letters use [Andika](https://software.sil.org/andika/), a typeface made for early readers. Without recordings, sounds use the device's built-in speech voice, so the app ships no audio files. For I, Q and X there is no spelling the voice says right, so until they're recorded it says the picture word instead.
 
 ## Install on an iPad
 
@@ -30,6 +31,6 @@ npx http-server -c-1 .
 
 ## Changing things
 
-- Letters, picture words, and the spellings the voice reads for each name and sound are in `letters.js`.
+- Letters, picture words, and the spellings the voice reads for each name and sound are in `letters.js`. Playing a recording or falling back to the voice is in `sound.js`; the recording screen is `recorder.js`, and `recordings.js` keeps the clips in IndexedDB.
 - When you change any file, bump `VERSION` in `sw.js`, or installed copies keep the old version.
 - Icons are drawn in `icons/icon.svg`; the PNGs next to it are renders of it.

@@ -298,6 +298,70 @@ main {
   line-height: 1;
 }
 
+/* ---------- Recording ---------- */
+
+.mic {
+  min-block-size: 3.5rem;
+  min-inline-size: 3.5rem;
+  padding: 0;
+  border-radius: 50%;
+  font-size: var(--ms-step-1);
+}
+
+#recorder {
+  inline-size: min(40rem, 100% - 2 * var(--ms-space-s));
+  user-select: none;
+}
+
+.rec-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rec-letter {
+  display: grid;
+  grid-template-columns: 4rem 1fr;
+  gap: var(--ms-space-3xs) var(--ms-space-xs);
+  align-items: center;
+  padding-block: var(--ms-space-2xs);
+  border-block-end: 1px solid var(--ms-color-border);
+}
+
+.rec-glyph {
+  grid-row: span 2;
+  font-family: var(--letter-font);
+  font-weight: 700;
+  font-size: var(--ms-step-3);
+  color: var(--ms-color-primary);
+}
+
+.rec-clip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ms-space-3xs);
+}
+
+.rec-label {
+  flex: 1 1 9rem;
+}
+
+.rec-clip button {
+  min-inline-size: 2.75rem;
+  padding-inline: var(--ms-space-2xs);
+}
+
+.rec-record {
+  min-inline-size: 6.5rem !important;
+}
+
+.rec-record.is-recording {
+  border-color: oklch(55% 0.2 25deg);
+  background: oklch(55% 0.2 25deg);
+  color: white;
+}
+
 /* Shown only when the browser can't speak. */
 .sound-problem {
   margin: 0;

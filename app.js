@@ -7,6 +7,9 @@
  */
 
 import { LETTERS } from "./letters.js"
+import { clipKey, clipUrl, loadClips } from "./recordings.js"
+import { setUpRecorder } from "./recorder.js"
+import { hush, say, setUpSound } from "./sound.js"
 
 /** @typedef {import("./letters.js").Letter} Letter */
 /** @typedef {"cards" | "find"} Mode */
@@ -71,99 +74,9 @@ function byId(id) {
   return el
 }
 
-/* ---------- Speech ---------- */
+/* ---------- Sound ---------- */
 
-/** @type {SpeechSynthesisVoice | undefined} */
-let voice
-
-/** Pick a clear English voice, preferring the iPad's default US voice. */
-function pickVoice() {
-  if (!("speechSynthesis" in window)) return
-  const voices = speechSynthesis.getVoices()
-  const english = voices.filter((v) =>
-    v.lang.replace("_", "-").startsWith("en"),
-  )
-  voice =
-    english.find((v) => v.name === "Samantha") ??
-    english.find(
-      (v) => v.lang.replace("_", "-") === "en-US" && v.localService,
-    ) ??
-    english.find((v) => v.lang.replace("_", "-") === "en-US") ??
-    english[0]
-}
-
-/**
- * Utterances being spoken. Safari can drop an utterance that nothing refers
- * to before it ends, and then its end event never comes.
- *
- * @type {SpeechSynthesisUtterance[]}
- */
-let speaking = []
-
-/**
- * Set once the chosen voice has failed: from then on the browser picks the
- * voice. Some systems list voices that can't actually speak.
- */
-let useDefaultVoice = false
-
-/**
- * Say some words, one after another, stopping anything already being said.
- * Resolves when the last one finishes. Some browsers never report the end,
- * so it also resolves after a generous wait.
- *
- * @param {string[]} parts The words to say, each with a short pause after.
- * @returns {Promise<void>} Settles when speaking is done.
- */
-function speak(parts) {
-  if (!("speechSynthesis" in window)) {
-    showSoundProblem("no speech support")
-    return Promise.resolve()
-  }
-  // Safari can drop words spoken straight after a cancel, so only cancel
-  // when something is actually being said.
-  if (speechSynthesis.speaking || speechSynthesis.pending) {
-    speechSynthesis.cancel()
-  }
-  if (!voice) pickVoice()
-  const chosen = useDefaultVoice ? undefined : voice
-  return new Promise((resolve) => {
-    const fallback = setTimeout(finish, 1500 + parts.length * 1200)
-    /** Settle once, whichever comes first. */
-    function finish() {
-      clearTimeout(fallback)
-      resolve()
-    }
-    let failed = false
-    speaking = parts.map((text, i) => {
-      const utterance = new SpeechSynthesisUtterance(text)
-      if (chosen) utterance.voice = chosen
-      utterance.lang = chosen?.lang ?? "en-US"
-      utterance.rate = 0.8
-      utterance.pitch = 1.1
-      utterance.onerror = (event) => {
-        // Stopping speech on purpose reports an error too; that's fine.
-        if (event.error === "interrupted" || event.error === "canceled") {
-          finish()
-          return
-        }
-        if (failed) return
-        failed = true
-        // The chosen voice may be the problem: try again with the default.
-        if (chosen && event.error !== "not-allowed") {
-          useDefaultVoice = true
-          clearTimeout(fallback)
-          speak(parts).then(resolve)
-          return
-        }
-        showSoundProblem(event.error)
-        finish()
-      }
-      if (i === parts.length - 1) utterance.onend = finish
-      return utterance
-    })
-    for (const utterance of speaking) speechSynthesis.speak(utterance)
-  })
-}
+/** @typedef {import("./sound.js").Part} Part */
 
 /**
  * Say on screen that sound isn't working, so a silent tap isn't a mystery.
@@ -181,13 +94,44 @@ function showSoundProblem(reason) {
 }
 
 /**
+ * A letter's name: the recording if there is one, else the speech voice.
+ *
+ * @param {Letter} item The letter.
+ * @returns {Part} What to say.
+ */
+function namePart(item) {
+  return { clip: clipKey(item.letter, "name"), text: item.name }
+}
+
+/**
+ * A letter's sound: the recording if there is one, else a spelling the
+ * speech voice reads as the sound, if the letter has one.
+ *
+ * @param {Letter} item The letter.
+ * @returns {Part} What to say.
+ */
+function soundPart(item) {
+  return { clip: clipKey(item.letter, "sound"), text: item.sound ?? undefined }
+}
+
+/**
+ * Whether the app can say a letter's sound by itself.
+ *
+ * @param {Letter} item The letter.
+ * @returns {boolean} Whether there's a recording or a usable spelling.
+ */
+function canSaySound(item) {
+  return item.sound !== null || Boolean(clipUrl(clipKey(item.letter, "sound")))
+}
+
+/**
  * The words that teach a letter's sound: the sound twice, then the word.
  *
  * @param {Letter} item The letter.
- * @returns {string[]} What to say.
+ * @returns {(Part | string)[]} What to say.
  */
 function soundParts(item) {
-  return [item.sound, item.sound, item.word]
+  return [soundPart(item), soundPart(item), item.word]
 }
 
 /* ---------- Shared display ---------- */
@@ -287,12 +231,12 @@ function goTo(index) {
 
 cardLetter.addEventListener("click", () => {
   pulse(cardLetter, "bounce")
-  speak([LETTERS[state.index].name])
+  say([namePart(LETTERS[state.index])])
 })
 
 cardPicture.addEventListener("click", () => {
   pulse(cardEmoji, "bounce")
-  speak(soundParts(LETTERS[state.index]))
+  say(soundParts(LETTERS[state.index]))
 })
 
 for (const button of document.querySelectorAll("[data-step]")) {
@@ -307,7 +251,7 @@ LETTERS.forEach((item, index) => {
   button.setAttribute("aria-label", item.letter)
   button.addEventListener("click", () => {
     goTo(index)
-    speak([item.name])
+    say([namePart(item)])
   })
   strip.append(button)
 })
@@ -390,7 +334,7 @@ function shuffle(list) {
  * @returns {boolean} Whether they sound the same.
  */
 function soundsAlike(a, b) {
-  return a.sound === b.sound
+  return a.alike === b.letter || b.alike === a.letter
 }
 
 /**
@@ -411,7 +355,9 @@ function makeRound(ask) {
 
 /** Start a new question and say it. */
 function newRound() {
-  round = makeRound(Math.random() < 0.5 ? "name" : "sound")
+  round = makeRound("name")
+  // Ask by sound half the time, when the app can say that letter's sound.
+  if (Math.random() < 0.5 && canSaySound(round.target)) round.ask = "sound"
   renderRound()
   askQuestion()
 }
@@ -441,8 +387,9 @@ function renderRound() {
 function askQuestion() {
   if (!round) return
   pulse(findPrompt, "bounce")
-  if (round.ask === "name") speak(["Find", round.target.name])
-  else speak(["Which letter says", round.target.sound, round.target.sound])
+  const target = round.target
+  if (round.ask === "name") say(["Find", namePart(target)])
+  else say(["Which letter says", soundPart(target), soundPart(target)])
 }
 
 /**
@@ -457,7 +404,7 @@ async function choose(button, item) {
   if (item !== target) {
     button.disabled = true
     pulse(button, "wrong")
-    await speak([`That's ${item.name}.`, "Try again!"])
+    await say(["That's", namePart(item), "Try again!"])
     return
   }
 
@@ -468,9 +415,10 @@ async function choose(button, item) {
   stars += 1
   renderStars()
   const done = stars >= STARS_PER_ROUND
-  await speak([
+  await say([
     done ? "You did it! Ten stars!" : "Yes!",
-    `${target.name} says`,
+    namePart(target),
+    "says",
     ...soundParts(target),
   ])
   if (done) stars = 0
@@ -520,7 +468,7 @@ for (const button of document.querySelectorAll("[data-mode]")) {
     const mode = button.dataset.mode
     if (mode !== "cards" && mode !== "find") return
     if (mode === state.mode) return
-    window.speechSynthesis?.cancel()
+    hush()
     state.mode = mode
     save()
     render()
@@ -558,10 +506,9 @@ document.addEventListener("keydown", (event) => {
 
 /* ---------- Start ---------- */
 
-if ("speechSynthesis" in window) {
-  pickVoice()
-  speechSynthesis.addEventListener("voiceschanged", pickVoice)
-}
+setUpSound(showSoundProblem)
+setUpRecorder()
+loadClips()
 
 render()
 if (state.mode === "find") {

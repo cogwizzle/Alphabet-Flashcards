@@ -35,24 +35,34 @@
               <span aria-hidden="true">🔎</span> Find it
             </button>
           </div>
-          <div role="group" aria-label="Letter case" class="segmented">
+          <ms-cluster space="xs">
+            <div role="group" aria-label="Letter case" class="segmented">
+              <button
+                type="button"
+                data-case="upper"
+                aria-pressed="true"
+                aria-label="Big letters"
+              >
+                ABC
+              </button>
+              <button
+                type="button"
+                data-case="lower"
+                aria-pressed="false"
+                aria-label="Small letters"
+              >
+                abc
+              </button>
+            </div>
             <button
               type="button"
-              data-case="upper"
-              aria-pressed="true"
-              aria-label="Big letters"
+              class="mic"
+              id="open-recorder"
+              aria-label="Record your voice"
             >
-              ABC
+              🎙️
             </button>
-            <button
-              type="button"
-              data-case="lower"
-              aria-pressed="false"
-              aria-label="Small letters"
-            >
-              abc
-            </button>
-          </div>
+          </ms-cluster>
         </ms-cluster>
       </header>
 
@@ -108,6 +118,22 @@
       </footer>
       <p class="sound-problem" id="sound-problem" role="status" hidden></p>
     </ms-stack>
+
+    <dialog id="recorder" aria-labelledby="recorder-title">
+      <ms-stack space="s">
+        <ms-cluster justify="space-between">
+          <h2 id="recorder-title">Record your voice</h2>
+          <button type="button" id="close-recorder">Done</button>
+        </ms-cluster>
+        <p>
+          Tap <b>● Record</b>, say the letter's name or its sound, then tap
+          <b>■ Stop</b>. The app plays your voice instead of the robot voice.
+          Recordings stay on this device.
+        </p>
+        <p class="sound-problem" id="recorder-problem" role="status" hidden></p>
+        <ul class="rec-list" id="recorder-list"></ul>
+      </ms-stack>
+    </dialog>
     <noscript>This app needs JavaScript to show the cards.</noscript>
   </body>
 </html>
