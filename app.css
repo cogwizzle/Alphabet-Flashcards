@@ -152,6 +152,12 @@ main {
   line-height: 1.1;
 }
 
+.emoji img {
+  display: block;
+  block-size: 1em;
+  inline-size: auto;
+}
+
 .word {
   font-family: var(--letter-font);
   font-size: min(7vh, 9vw);

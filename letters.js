@@ -1,7 +1,9 @@
 /**
- * The alphabet: each letter with a picture word that starts with its most
- * common sound. `name` and `sound` are spellings the speech voice reads as
- * the letter's name and its sound; tune them here if a voice says one wrong.
+ * The alphabet: each letter with a picture word that starts with it. Most
+ * words also start with the letter's usual sound; xylophone is the exception
+ * (its x says "z"), so X teaches its "ks" sound on its own. `name` and
+ * `sound` are spellings the speech voice reads as the letter's name and its
+ * sound; tune them here if a voice says one wrong.
  *
  * @module letters
  */
@@ -12,7 +14,8 @@
  * @property {string} name A spelling the voice reads as the letter's name.
  * @property {string} sound A spelling the speech voice reads as the sound.
  * @property {string} word A word that shows the sound.
- * @property {string} picture An emoji of the word.
+ * @property {string} picture An emoji of the word, or the path of an image
+ *   when there is no emoji for it.
  */
 
 /** @type {Letter[]} */
@@ -46,7 +49,13 @@ export const LETTERS = [
     word: "watermelon",
     picture: "🍉",
   },
-  { letter: "X", name: "ex", sound: "ks", word: "fox", picture: "🦊" },
+  {
+    letter: "X",
+    name: "ex",
+    sound: "ks",
+    word: "xylophone",
+    picture: "icons/xylophone.svg",
+  },
   { letter: "Y", name: "why", sound: "yuh", word: "yo-yo", picture: "🪀" },
   { letter: "Z", name: "zee", sound: "zzz", word: "zebra", picture: "🦓" },
 ]

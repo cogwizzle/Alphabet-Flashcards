@@ -239,7 +239,14 @@ function renderCard() {
   const item = LETTERS[state.index]
   cardLetter.textContent = shown(item)
   cardLetter.setAttribute("aria-label", `${shown(item)}. Say the letter`)
-  cardEmoji.textContent = item.picture
+  if (item.picture.endsWith(".svg")) {
+    const img = document.createElement("img")
+    img.src = item.picture
+    img.alt = ""
+    cardEmoji.replaceChildren(img)
+  } else {
+    cardEmoji.textContent = item.picture
+  }
 
   // The word, with the letter that makes the sound picked out.
   const at = item.word.indexOf(item.letter.toLowerCase())

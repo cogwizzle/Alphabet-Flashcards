@@ -6,7 +6,7 @@
  * @module sw
  */
 
-const VERSION = "v4"
+const VERSION = "v5"
 const CACHE = `abc-flashcards-${VERSION}`
 const FILES = [
   "./",
@@ -19,6 +19,7 @@ const FILES = [
   "fonts/andika-latin-400-normal.woff2",
   "fonts/andika-latin-700-normal.woff2",
   "icons/icon.svg",
+  "icons/xylophone.svg",
   "icons/apple-touch-icon.png",
   "icons/icon-192.png",
   "icons/icon-512.png",
