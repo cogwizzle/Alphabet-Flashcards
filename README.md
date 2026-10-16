@@ -6,7 +6,7 @@ Flash card game for kids to help learn letters and sounds. It is a Progressive W
 - **Find it**: the app says a letter's name or its sound, and she taps the matching letter out of four. Each right answer earns a star; ten stars is a win.
 - **ABC / abc**: switches every letter between uppercase and lowercase.
 
-The look comes from [Modern Styles](https://github.com/cogwizzle/Modern-Styles), and letters use [Andika](https://software.sil.org/andika/), a typeface made for early readers. Sounds use the device's built-in speech voice, so there are no audio files.
+The look comes from [Modern Styles](https://github.com/cogwizzle/Modern-Styles), and letters use [Andika](https://software.sil.org/andika/), a typeface made for early readers. Every word the app says is a short recorded clip in `audio/`, so it sounds the same on every device and works offline.
 
 ## Install on an iPad
 
@@ -30,6 +30,10 @@ npx http-server -c-1 .
 
 ## Changing things
 
-- Letters, picture words, and the spellings the voice reads for each name and sound are in `letters.js`.
+- Letters and picture words are in `letters.js`. Each letter's clips are `audio/<letter>-name.mp3`, `-sound.mp3` and `-word.mp3`; the phrases ("Let's play!", "Find", "Yes!" and so on) are next to them.
 - When you change any file, bump `VERSION` in `sw.js`, or installed copies keep the old version.
 - Icons are drawn in `icons/icon.svg`; the PNGs next to it are renders of it.
+
+## Credits
+
+The voice clips were made with [Piper](https://github.com/rhasspy/piper) (MIT license), using its `en_US-libritts-high` voice model. That model is trained on the [LibriTTS](https://www.openslr.org/60/) corpus, which is licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Each letter sound was cut out of a longer word and trimmed, so it is a clean sound on its own.

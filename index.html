@@ -24,7 +24,13 @@
     <script type="module" src="app.js"></script>
   </head>
   <body>
-    <ms-stack space="s" class="app">
+    <div class="start" id="start">
+      <button type="button" id="start-button">
+        <img src="icons/icon.svg" alt="" />
+        <span>Let's play!</span>
+      </button>
+    </div>
+    <ms-stack space="s" class="app" inert>
       <header>
         <ms-cluster justify="space-between" space="xs">
           <div role="group" aria-label="Game" class="segmented">
