@@ -571,12 +571,25 @@ if ("speechSynthesis" in window) {
 }
 
 render()
-if (state.mode === "find") {
-  // Nothing can be said before the first tap, so show the question quietly.
-  round = makeRound("name")
-  renderRound()
-  findPromptText.textContent = "Tap to hear"
-}
+
+// Browsers stay silent until the page is tapped, so the app opens on a big
+// start button. Its tap is the one that unlocks sound, and it says hello so
+// a grown-up knows the volume is up.
+const start = byId("start")
+const app = document.querySelector(".app")
+byId("start-button").addEventListener("click", () => {
+  start.hidden = true
+  app?.removeAttribute("inert")
+  if (state.mode === "find") {
+    stars = 0
+    renderStars()
+    round = makeRound("name")
+    renderRound()
+    speak(["Let's play!", "Find", round.target.name])
+  } else {
+    speak(["Let's play!"])
+  }
+})
 
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js").catch(() => {

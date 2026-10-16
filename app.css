@@ -54,6 +54,54 @@ main {
   min-block-size: 0;
 }
 
+/* ---------- Start screen ---------- */
+
+.start {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: max(var(--ms-space-m), env(safe-area-inset-top))
+    max(var(--ms-space-m), env(safe-area-inset-right))
+    max(var(--ms-space-m), env(safe-area-inset-bottom))
+    max(var(--ms-space-m), env(safe-area-inset-left));
+  background: var(--ms-color-bg);
+}
+
+.start button {
+  flex-direction: column;
+  gap: var(--ms-space-s);
+  inline-size: min(70vmin, 22rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border-width: 6px;
+  background: var(--ms-color-primary);
+  color: var(--ms-color-on-primary);
+  font-family: var(--letter-font);
+  font-weight: 700;
+  font-size: min(8vmin, 2.5rem);
+  box-shadow: 0 1rem 3rem
+    color-mix(in oklch, var(--ms-color-primary) 35%, transparent);
+  animation: breathe 2.4s ease-in-out infinite;
+}
+
+.start button:hover {
+  background: var(--ms-color-primary-hover);
+  color: var(--ms-color-on-primary);
+}
+
+.start img {
+  inline-size: 45%;
+  border-radius: 22%;
+}
+
+@keyframes breathe {
+  50% {
+    transform: scale(1.04);
+  }
+}
+
 /* ---------- Toggles ---------- */
 
 .segmented {
@@ -373,6 +421,7 @@ main {
   .wrong,
   .in-next,
   .in-prev,
+  .start button,
   .choice.right {
     animation: none;
   }
